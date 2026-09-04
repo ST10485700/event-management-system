@@ -38,7 +38,8 @@ A GitHub Actions workflow (`.github/workflows/validate-docs.yml`) checks that th
 and contains the ERD, endpoint plan, and SQL script on every push.
 
 **Green build:**
-![CI Passing](docs/ci-success-screenshot.png)
+![RaceDay ERD Diagram](./docs/RaceDay-ERD.png)
+![Validate Docs Status](https://github.com/ST10485700/event-management-system/actions/workflows/validate-docs.yml/badge.svg)
 
 ## Video Walkthrough
 **YouTube (unlisted):** <!-- paste your video link here once recorded -->
