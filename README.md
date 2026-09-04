@@ -42,7 +42,11 @@ and contains the ERD, endpoint plan, and SQL script on every push.
 ![Validate Docs Status](https://github.com/ST10485700/event-management-system/actions/workflows/validate-docs.yml/badge.svg)
 
 ## Video Walkthrough
-**YouTube (unlisted):** <!-- paste your video link here once recorded -->
+YouTube Video: https://www.youtube.com/watch?v=R0NTMAq04P8
+
+https://youtu.be/R0NTMAq04P8
+
+Video Content Summary (Timestamps)The video provides a walkthrough covering:  [00:04] – ERD Overview: Walkthrough of the 6 main database entities (Users, Events, Categories, Routes, EventEnrolments, Results) and their Crow's Foot relationships.  [00:41] – API Endpoint Specification: Review of the REST API endpoints covering Authentication, Users, Events, Categories, Enrolments, Results, and Routes.  [01:15] – SQL Database Execution: Execution of RaceDayEvents.sql in SQL Server Management Studio (SSMS) showcasing table creation, constraints, seed data insertion, and data selection queries.
 
 The video covers: the ERD and the reasoning behind each entity/relationship, the API endpoint plan and
 role decisions, and a live run of the SQL script in SSMS.
