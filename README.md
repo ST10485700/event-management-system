@@ -10,7 +10,7 @@ RaceDay is an event management system for South African road running, walking an
 | Item | Link |
 |---|---|
 | Part 2 code (branch) | https://github.com/ST10485700/event-management-system/tree/part-2-api |
-| Part 2 video (unlisted YouTube) | [PASTE YOUR YOUTUBE LINK HERE](PASTE_LINK_HERE) |
+| Part 2 video (unlisted YouTube) | (https://youtu.be/1qgtkVOx1lA) |
 | Endpoint documentation | [docs/Part2_Endpoint_Implementation.md](docs/Part2_Endpoint_Implementation.md) |
 
 ## The two roles
