@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +33,7 @@ namespace RaceDay_API.Controllers
         public TimeSpan FinishTime { get; set; }
         public int Position { get; set; }
         public DateTime CapturedAt { get; set; }
+        public int TotalFinishers { get; set; }
     }
 
     [Route("api/[controller]")]
@@ -66,7 +67,8 @@ namespace RaceDay_API.Controllers
             CategoryName = r.Enrolment!.Category!.Name,
             FinishTime = r.FinishTime,
             Position = r.Position,
-            CapturedAt = r.CapturedAt
+            CapturedAt = r.CapturedAt,
+            TotalFinishers = r.Enrolment!.Category!.Enrolments.Count(x => x.Result != null)
         };
 
         /// <summary>Lists results for the Organiser's own events, optionally for one event.</summary>

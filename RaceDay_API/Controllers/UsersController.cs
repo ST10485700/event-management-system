@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay_API.Models;
 using RaceDay_API.Security;
+using RaceDay_API.Services;
 
 namespace RaceDay_API.Controllers
 {
@@ -11,10 +12,12 @@ namespace RaceDay_API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly RaceDayContext _context;
+        private readonly IImageStorage _storage;
 
-        public UsersController(RaceDayContext context)
+        public UsersController(RaceDayContext context, IImageStorage storage)
         {
             _context = context;
+            _storage = storage;
         }
 
         /// <summary>Registers a new Participant account. Public.</summary>
@@ -90,7 +93,7 @@ namespace RaceDay_API.Controllers
             return Ok(new { message = "Logged out." });
         }
 
-        /// <summary>Returns the profile of the logged-in user.</summary>
+        /// <summary>Returns the profile of the logged-in user, including the profile picture URL.</summary>
         [HttpGet("profile")]
         [SessionAuthorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -102,7 +105,7 @@ namespace RaceDay_API.Controllers
 
             var profile = await _context.Users.AsNoTracking()
                 .Where(u => u.UserID == userId)
-                .Select(u => new { u.UserID, u.FullName, u.Email, u.Role, u.CreatedAt })
+                .Select(u => new { u.UserID, u.FullName, u.Email, u.Role, u.CreatedAt, u.ProfilePictureUrl })
                 .FirstOrDefaultAsync();
 
             if (profile == null)
@@ -111,7 +114,7 @@ namespace RaceDay_API.Controllers
             return Ok(profile);
         }
 
-        /// <summary>Updates the name and email of the logged-in user.</summary>
+        /// <summary>Updates the name and email of the logged-in user, with an optional new profile picture.</summary>
         [HttpPut("profile")]
         [SessionAuthorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -119,6 +122,7 @@ namespace RaceDay_API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileDto dto)
         {
             var userId = HttpContext.Session.GetInt32("UserID")!.Value;
@@ -131,11 +135,27 @@ namespace RaceDay_API.Controllers
             if (await _context.Users.AnyAsync(u => u.Email == email && u.UserID != userId))
                 return Conflict(new { message = "That email is already used by another account." });
 
+            if (dto.ProfilePicture != null && dto.ProfilePicture.Length > 0)
+            {
+                var problem = ImageValidation.Validate(dto.ProfilePicture);
+                if (problem != null)
+                    return BadRequest(new { message = problem });
+
+                try
+                {
+                    current.ProfilePictureUrl = await _storage.UploadAsync(dto.ProfilePicture, "profiles");
+                }
+                catch (ImageStorageException ex)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = ex.Message });
+                }
+            }
+
             current.FullName = dto.FullName.Trim();
             current.Email = email;
             await _context.SaveChangesAsync();
 
-            return Ok(new { current.UserID, current.FullName, current.Email, current.Role });
+            return Ok(new { current.UserID, current.FullName, current.Email, current.Role, current.ProfilePictureUrl });
         }
     }
 }

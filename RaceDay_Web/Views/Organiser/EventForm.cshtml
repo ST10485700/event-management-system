@@ -1,0 +1,106 @@
+@model EventFormModel
+@{
+    var isNew = Model.EventID == 0;
+    ViewData["Title"] = isNew ? "Create event" : "Edit event";
+    var formAction = isNew ? "CreateEvent" : "EditEvent";
+    var types = new[] { "Running", "Cycling", "Walking" };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Events">My events</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@(isNew ? "New event" : "Edit event")</li>
+            </ol>
+        </nav>
+
+        <div class="rd-card p-4 p-md-5">
+            <p class="rd-eyebrow text-orange mb-1">Organiser</p>
+            <h1 class="rd-heading display-6 mb-4">@(isNew ? "Create an event" : "Edit event")</h1>
+
+            <form asp-action="@formAction" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="EventID" />
+                <input type="hidden" asp-for="ExistingBannerUrl" />
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control form-control-lg" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="EventDate" class="form-label">Event date</label>
+                        <input type="date" id="EventDate" name="EventDate" class="form-control form-control-lg"
+                               value="@(Model.EventDate?.ToString("yyyy-MM-dd"))" />
+                        <span asp-validation-for="EventDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Location" class="form-label"></label>
+                        <input asp-for="Location" class="form-control form-control-lg" />
+                        <span asp-validation-for="Location" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="EventType" class="form-label">Event type</label>
+                        <select id="EventType" name="EventType" class="form-select form-select-lg">
+                            @foreach (var type in types)
+                            {
+                                <option value="@type" selected="@(Model.EventType == type)">@type</option>
+                            }
+                        </select>
+                        <span asp-validation-for="EventType" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DistanceKm" class="form-label"></label>
+                        <input asp-for="DistanceKm" type="number" step="0.1" min="0.1" class="form-control form-control-lg" />
+                        <span asp-validation-for="DistanceKm" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Banner" class="form-label"></label>
+                    <input asp-for="Banner" type="file" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif" />
+                    <div class="form-text">
+                        JPG, PNG, WEBP or GIF, up to 5 MB.
+                        @(isNew ? "Shown on the event page." : "Choose a new file to replace the current banner.")
+                    </div>
+                    <img id="bannerPreview" alt="Banner preview"
+                         class="rd-banner-preview mt-3 @(string.IsNullOrEmpty(Model.ExistingBannerUrl) ? "d-none" : "")"
+                         src="@Model.ExistingBannerUrl" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-lg"></i> @(isNew ? "Create event" : "Save changes")
+                    </button>
+                    <a asp-action="Events" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('Banner').addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            var preview = document.getElementById('bannerPreview');
+            if (file && preview) {
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('d-none');
+            }
+        });
+    </script>
+}

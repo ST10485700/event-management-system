@@ -1,0 +1,89 @@
+@model EventEnrolmentsViewModel
+@{
+    ViewData["Title"] = "Enrolments";
+    var confirmed = Model.Enrolments.Count(e => e.Status == "Active");
+    var completed = Model.Enrolments.Count(e => e.Status == "Completed");
+    var cancelled = Model.Enrolments.Count(e => e.Status == "Cancelled");
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+    <div>
+        <p class="rd-eyebrow text-orange mb-1">Organiser</p>
+        <h1 class="rd-heading display-5 mb-0">Enrolments</h1>
+    </div>
+
+    @if (Model.Events.Count > 0)
+    {
+        <form method="get" asp-action="Enrolments" class="d-flex align-items-center gap-2">
+            <label for="eventId" class="form-label mb-0 fw-semibold">Event</label>
+            <select id="eventId" name="eventId" class="form-select" onchange="this.form.submit()">
+                @foreach (var ev in Model.Events)
+                {
+                    <option value="@ev.EventID" selected="@(ev.EventID == Model.SelectedEventId)">@ev.Name (@ev.EventDate.ToString("d MMM yyyy"))</option>
+                }
+            </select>
+        </form>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+@if (Model.Events.Count == 0 && string.IsNullOrEmpty(Model.Error))
+{
+    <div class="rd-card text-center p-5">
+        <i class="bi bi-people display-4 text-orange"></i>
+        <h2 class="rd-heading h4 mt-3">No events yet</h2>
+        <p class="text-muted">Create an event and share it with participants to see enrolments here.</p>
+        <a class="btn btn-primary" asp-action="CreateEvent">Create an event</a>
+    </div>
+}
+else if (Model.SelectedEvent != null)
+{
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="status-badge status-active">@confirmed confirmed</span>
+        <span class="status-badge status-completed">@completed completed</span>
+        <span class="status-badge status-cancelled">@cancelled cancelled</span>
+    </div>
+
+    @if (Model.Enrolments.Count == 0)
+    {
+        <div class="rd-card text-center p-5">
+            <i class="bi bi-person-plus display-4 text-orange"></i>
+            <h2 class="rd-heading h4 mt-3">Nobody has entered yet</h2>
+            <p class="text-muted mb-0">Enrolments for @Model.SelectedEvent.Name will appear here as participants enter.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table rd-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bib</th>
+                            <th>Participant</th>
+                            <th>Category</th>
+                            <th>Entered on</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.Enrolments.OrderBy(x => x.CategoryName).ThenBy(x => x.BibNumber))
+                        {
+                            <tr>
+                                <td><span class="rd-bib">@e.BibNumber</span></td>
+                                <td class="fw-semibold">@e.ParticipantName</td>
+                                <td>@e.CategoryName</td>
+                                <td>@e.EnrolmentDate.ToString("d MMM yyyy")</td>
+                                <td><span class="status-badge status-@e.Status.ToLowerInvariant()">@Format.StatusLabel(e.Status)</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

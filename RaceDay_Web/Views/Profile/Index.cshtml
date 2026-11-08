@@ -1,0 +1,69 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    var initial = string.IsNullOrWhiteSpace(Model.FullName) ? "?" : Model.FullName.Trim().Substring(0, 1).ToUpperInvariant();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-3">
+            <p class="rd-eyebrow text-orange mb-1">Your account</p>
+            <h1 class="rd-heading display-5 mb-0">My profile</h1>
+        </div>
+
+        <div class="rd-card p-4 p-md-5">
+            <div class="d-flex flex-column flex-sm-row align-items-center gap-4 mb-4">
+                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                {
+                    <img class="rd-avatar" src="@Model.ProfilePictureUrl" alt="Profile picture" />
+                }
+                else
+                {
+                    <div class="rd-avatar rd-avatar-initial">@initial</div>
+                }
+                <div class="text-center text-sm-start">
+                    <h2 class="rd-heading h3 mb-1">@Model.FullName</h2>
+                    <p class="text-muted mb-1">@Model.Email</p>
+                    @if (!string.IsNullOrEmpty(Model.Role))
+                    {
+                        <span class="badge rd-role-badge">@Model.Role</span>
+                    }
+                </div>
+            </div>
+
+            <form asp-action="Update" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="ProfilePictureUrl" />
+                <input type="hidden" asp-for="Role" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control form-control-lg" autocomplete="name" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control form-control-lg" autocomplete="email" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ProfilePicture" class="form-label"></label>
+                    <input asp-for="ProfilePicture" type="file" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif" />
+                    <div class="form-text">JPG, PNG, WEBP or GIF, up to 5 MB. Leave empty to keep your current picture.</div>
+                    <span asp-validation-for="ProfilePicture" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg"></i> Save changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

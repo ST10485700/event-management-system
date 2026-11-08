@@ -1,0 +1,85 @@
+@model OrganiserEventsViewModel
+@{
+    ViewData["Title"] = "My Events";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-2">
+    <div>
+        <p class="rd-eyebrow text-orange mb-1">Organiser</p>
+        <h1 class="rd-heading display-5 mb-0">My events</h1>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateEvent"><i class="bi bi-plus-lg"></i> New event</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+@if (Model.Events.Count == 0 && string.IsNullOrEmpty(Model.Error))
+{
+    <div class="rd-card text-center p-5">
+        <i class="bi bi-calendar-plus display-4 text-orange"></i>
+        <h2 class="rd-heading h4 mt-3">No events yet</h2>
+        <p class="text-muted">Create an event to get started.</p>
+        <a class="btn btn-primary" asp-action="CreateEvent">Create an event</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var ev in Model.Events)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="rd-card rd-event-card d-flex flex-column">
+                    @if (!string.IsNullOrEmpty(ev.BannerUrl))
+                    {
+                        <img class="rd-event-banner" src="@ev.BannerUrl" alt="Banner for @ev.Name" />
+                    }
+                    else
+                    {
+                        <div class="rd-event-banner rd-event-banner-empty"><i class="bi bi-lightning-charge-fill"></i></div>
+                    }
+                    <div class="card-body d-flex flex-column flex-grow-1">
+                        <div>
+                            <span class="type-badge type-@ev.EventType.ToLowerInvariant()">@ev.EventType</span>
+                        </div>
+                        <h2 class="rd-heading h4 mt-2 mb-2">@ev.Name</h2>
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-calendar-event"></i> @ev.EventDate.ToString("ddd, d MMM yyyy")
+                            &nbsp;&middot;&nbsp;
+                            <i class="bi bi-geo-alt-fill"></i> @ev.Location
+                        </p>
+                        <p class="small mb-3 flex-grow-1">
+                            @if (ev.DistanceKm.HasValue)
+                            {
+                                <span class="me-3"><i class="bi bi-signpost-split-fill text-orange"></i> @ev.DistanceKm.Value.ToString("0.##") km</span>
+                            }
+                            <span class="me-3"><i class="bi bi-tags-fill text-orange"></i> @ev.CategoryCount @(ev.CategoryCount == 1 ? "category" : "categories")</span>
+                            <span><i class="bi bi-people-fill text-orange"></i> @ev.EnrolmentCount entered</span>
+                        </p>
+
+                        <div class="d-grid gap-2">
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-primary btn-sm flex-fill" asp-action="Categories" asp-route-eventId="@ev.EventID">Categories</a>
+                                <a class="btn btn-outline-primary btn-sm flex-fill" asp-action="Enrolments" asp-route-eventId="@ev.EventID">Enrolments</a>
+                                <a class="btn btn-outline-primary btn-sm flex-fill" asp-action="Results" asp-route-eventId="@ev.EventID">Results</a>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-outline-secondary btn-sm flex-fill" asp-action="EditEvent" asp-route-id="@ev.EventID">
+                                    <i class="bi bi-pencil-fill"></i> Edit
+                                </a>
+                                <form asp-action="DeleteEvent" asp-route-id="@ev.EventID" method="post" class="flex-fill"
+                                      onsubmit="return confirm('Delete this event? This cannot be undone.');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-trash-fill"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

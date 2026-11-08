@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RaceDay_API.Models;
+using RaceDay_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,9 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// Image uploads (event banners and profile pictures) go to Azure Blob Storage
+builder.Services.AddScoped<IImageStorage, AzureBlobImageStorage>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

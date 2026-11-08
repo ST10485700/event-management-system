@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Home";
+    var loggedIn = Context.Session.GetInt32(SessionKeys.UserId) != null;
+    var role = Context.Session.GetString(SessionKeys.Role);
+    var fullName = Context.Session.GetString(SessionKeys.FullName);
+}
+
+<section class="rd-hero">
+    <div class="rd-hero-inner">
+        @if (loggedIn)
+        {
+            <p class="rd-eyebrow">@role</p>
+            <h1 class="rd-hero-title">Welcome back, @fullName</h1>
+            <p class="rd-hero-text">
+                @if (role == "Organiser")
+                {
+                    <text>Manage your events, categories, enrolments and results from one place.</text>
+                }
+                else
+                {
+                    <text>Find your next race, enter in seconds and track every finish.</text>
+                }
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                @if (role == "Organiser")
+                {
+                    <a class="btn btn-primary btn-lg" asp-controller="Organiser" asp-action="Dashboard">Open dashboard</a>
+                    <a class="btn btn-outline-light btn-lg" asp-controller="Organiser" asp-action="Events">Manage events</a>
+                }
+                else
+                {
+                    <a class="btn btn-primary btn-lg" asp-controller="Events" asp-action="Index">Browse events</a>
+                    <a class="btn btn-outline-light btn-lg" asp-controller="MyEnrolments" asp-action="Index">My enrolments</a>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="rd-eyebrow">Run &bull; Walk &bull; Ride</p>
+            <h1 class="rd-hero-title">Race day starts here</h1>
+            <p class="rd-hero-text">
+                Find events across South Africa, enter in seconds and keep every finish time in one place.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">Create an account</a>
+                <a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Login">Log in</a>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="row g-4 mt-1">
+    <div class="col-md-4">
+        <div class="rd-card rd-feature h-100">
+            <i class="bi bi-search"></i>
+            <h2 class="rd-heading h5">Find your race</h2>
+            <p class="text-muted mb-0">Browse running, cycling and walking events and pick the distance that suits you.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="rd-card rd-feature h-100">
+            <i class="bi bi-ticket-perforated"></i>
+            <h2 class="rd-heading h5">Enter in seconds</h2>
+            <p class="text-muted mb-0">Choose a category and get your bib number straight away.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="rd-card rd-feature h-100">
+            <i class="bi bi-trophy"></i>
+            <h2 class="rd-heading h5">Track your results</h2>
+            <p class="text-muted mb-0">See your finish times and positions for every race you have entered.</p>
+        </div>
+    </div>
+</section>

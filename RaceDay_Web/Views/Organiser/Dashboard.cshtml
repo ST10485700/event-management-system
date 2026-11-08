@@ -1,0 +1,123 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-2">
+    <div>
+        <p class="rd-eyebrow text-orange mb-1">Organiser</p>
+        <h1 class="rd-heading display-5 mb-0">Dashboard</h1>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateEvent"><i class="bi bi-plus-lg"></i> New event</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <i class="bi bi-calendar-event"></i>
+            <div class="rd-stat-value">@Model.TotalEvents</div>
+            <div class="rd-stat-label">Events created</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <i class="bi bi-hourglass-split"></i>
+            <div class="rd-stat-value">@Model.UpcomingEvents</div>
+            <div class="rd-stat-label">Upcoming events</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <i class="bi bi-people-fill"></i>
+            <div class="rd-stat-value">@Model.TotalEnrolments</div>
+            <div class="rd-stat-label">Total enrolments</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <i class="bi bi-tags-fill"></i>
+            <div class="rd-stat-value">@Model.TotalCategories</div>
+            <div class="rd-stat-label">Categories</div>
+        </div>
+    </div>
+</div>
+
+@if (Model.NextEvent != null)
+{
+    var next = Model.NextEvent;
+    var daysToGo = next.EventDate.DayNumber - today.DayNumber;
+    <div class="rd-hero mb-4 py-4">
+        <p class="rd-eyebrow mb-1">Next up</p>
+        <h2 class="rd-heading display-6 mb-1">@next.Name</h2>
+        <p class="mb-3">
+            @next.EventDate.ToString("dddd, d MMMM yyyy") &middot; @next.Location &middot;
+            @(daysToGo == 0 ? "today" : daysToGo == 1 ? "tomorrow" : "in " + daysToGo + " days") &middot;
+            @next.EnrolmentCount @(next.EnrolmentCount == 1 ? "enrolment" : "enrolments")
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" asp-action="Enrolments" asp-route-eventId="@next.EventID">View enrolments</a>
+            <a class="btn btn-outline-light" asp-action="Categories" asp-route-eventId="@next.EventID">Manage categories</a>
+        </div>
+    </div>
+}
+
+<h2 class="rd-heading h3 mb-3">Your events</h2>
+
+@if (Model.Events.Count == 0 && string.IsNullOrEmpty(Model.Error))
+{
+    <div class="rd-card text-center p-5">
+        <i class="bi bi-calendar-plus display-4 text-orange"></i>
+        <h3 class="rd-heading h4 mt-3">You haven't created an event yet</h3>
+        <p class="text-muted">Create your first event, then add categories so participants can enter.</p>
+        <a class="btn btn-primary" asp-action="CreateEvent">Create an event</a>
+    </div>
+}
+else if (Model.Events.Count > 0)
+{
+    <div class="rd-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table rd-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th class="text-center">Categories</th>
+                        <th class="text-center">Enrolments</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model.Events)
+                    {
+                        var days = ev.EventDate.DayNumber - today.DayNumber;
+                        <tr>
+                            <td class="fw-semibold">@ev.Name</td>
+                            <td>
+                                @ev.EventDate.ToString("d MMM yyyy")<br />
+                                <span class="small @(days < 0 ? "text-muted" : "text-orange fw-semibold")">
+                                    @(days < 0 ? "Completed" : days == 0 ? "Today" : "In " + days + (days == 1 ? " day" : " days"))
+                                </span>
+                            </td>
+                            <td>@ev.Location</td>
+                            <td><span class="type-badge type-@ev.EventType.ToLowerInvariant()">@ev.EventType</span></td>
+                            <td class="text-center">@ev.CategoryCount</td>
+                            <td class="text-center fw-bold">@ev.EnrolmentCount</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-outline-primary btn-sm" asp-action="Enrolments" asp-route-eventId="@ev.EventID">Enrolments</a>
+                                <a class="btn btn-outline-secondary btn-sm" asp-action="Results" asp-route-eventId="@ev.EventID">Results</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

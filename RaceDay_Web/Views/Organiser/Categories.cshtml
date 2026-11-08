@@ -1,0 +1,109 @@
+@model CategoriesViewModel
+@{
+    ViewData["Title"] = "Categories";
+    var ev = Model.Event;
+    var form = Model.NewCategory;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Events">My events</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ev.Name</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <p class="rd-eyebrow text-orange mb-1">@ev.EventDate.ToString("d MMMM yyyy") &middot; @ev.Location</p>
+    <h1 class="rd-heading display-6 mb-0">Categories for @ev.Name</h1>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (Model.Categories.Count == 0)
+        {
+            <div class="rd-card text-center p-5">
+                <i class="bi bi-tags display-4 text-orange"></i>
+                <h2 class="rd-heading h4 mt-3">No categories yet</h2>
+                <p class="text-muted mb-0">Add a distance or age category so participants can enter this event.</p>
+            </div>
+        }
+        else
+        {
+            <div class="rd-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table rd-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Distance</th>
+                                <th>Fee</th>
+                                <th>Entered</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@c.Name</td>
+                                    <td>@c.DistanceKm.ToString("0.##") km</td>
+                                    <td>@Format.Currency(c.EntryFee)</td>
+                                    <td>@(c.MaxParticipants - c.SpotsRemaining) / @c.MaxParticipants</td>
+                                    <td class="text-end text-nowrap">
+                                        <a class="btn btn-outline-secondary btn-sm" asp-action="EditCategory" asp-route-id="@c.CategoryID">Edit</a>
+                                        <form asp-action="DeleteCategory" method="post" class="d-inline"
+                                              onsubmit="return confirm('Delete this category?');">
+                                            <input type="hidden" name="id" value="@c.CategoryID" />
+                                            <input type="hidden" name="eventId" value="@ev.EventID" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="rd-card">
+            <h2 class="rd-heading h4 mb-3">Add a category</h2>
+
+            <form asp-action="AddCategory" method="post">
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
+                <input type="hidden" name="EventID" value="@ev.EventID" />
+
+                <div class="mb-3">
+                    <label class="form-label" for="newName">Category name</label>
+                    <input id="newName" name="Name" class="form-control" maxlength="100" required
+                           placeholder="e.g. 10 km Race or Under 20" value="@form.Name" />
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label" for="newDistance">Distance (km)</label>
+                        <input id="newDistance" name="DistanceKm" type="number" step="0.1" min="0.1" class="form-control" required
+                               value="@form.DistanceKm" />
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label" for="newMax">Max participants</label>
+                        <input id="newMax" name="MaxParticipants" type="number" min="1" class="form-control" required
+                               value="@form.MaxParticipants" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="newFee">Entry fee (R)</label>
+                    <input id="newFee" name="EntryFee" type="number" step="0.01" min="0" class="form-control" required
+                           value="@form.EntryFee" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Add category</button>
+            </form>
+        </div>
+    </div>
+</div>

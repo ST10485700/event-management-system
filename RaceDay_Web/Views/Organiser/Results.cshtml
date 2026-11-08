@@ -1,0 +1,131 @@
+@model ResultsEntryViewModel
+@{
+    ViewData["Title"] = "Results";
+    var eventId = Model.SelectedEventId ?? 0;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+    <div>
+        <p class="rd-eyebrow text-orange mb-1">Organiser</p>
+        <h1 class="rd-heading display-5 mb-0">Results entry</h1>
+    </div>
+
+    @if (Model.Events.Count > 0)
+    {
+        <form method="get" asp-action="Results" class="d-flex align-items-center gap-2">
+            <label for="eventId" class="form-label mb-0 fw-semibold">Event</label>
+            <select id="eventId" name="eventId" class="form-select" onchange="this.form.submit()">
+                @foreach (var ev in Model.Events)
+                {
+                    <option value="@ev.EventID" selected="@(ev.EventID == Model.SelectedEventId)">@ev.Name (@ev.EventDate.ToString("d MMM yyyy"))</option>
+                }
+            </select>
+        </form>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+@if (Model.Events.Count == 0 && string.IsNullOrEmpty(Model.Error))
+{
+    <div class="rd-card text-center p-5">
+        <i class="bi bi-trophy display-4 text-orange"></i>
+        <h2 class="rd-heading h4 mt-3">No events yet</h2>
+        <p class="text-muted mb-0">Create an event first. You can capture results once participants have entered.</p>
+    </div>
+}
+else if (Model.SelectedEvent != null)
+{
+    <p class="text-muted">
+        Enter each finisher's time as <strong>hours:minutes:seconds</strong> (for example <code>00:45:30</code>) and their finishing position
+        in their category. Participants see their result as soon as you save it.
+    </p>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="rd-card text-center p-5">
+            <i class="bi bi-person-plus display-4 text-orange"></i>
+            <h2 class="rd-heading h4 mt-3">No entered participants</h2>
+            <p class="text-muted mb-0">Results can be captured once participants have entered @Model.SelectedEvent.Name.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table rd-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bib</th>
+                            <th>Participant</th>
+                            <th>Category</th>
+                            <th>Finish time</th>
+                            <th>Position</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            var e = row.Enrolment;
+                            var r = row.Result;
+                            <tr>
+                                <td><span class="rd-bib">@e.BibNumber</span></td>
+                                <td class="fw-semibold">@e.ParticipantName</td>
+                                <td>@e.CategoryName</td>
+
+                                @if (r == null)
+                                {
+                                    <form asp-action="CaptureResult" method="post" id="capture-@e.EnrolmentID">
+                                        <input type="hidden" name="eventId" value="@eventId" />
+                                        <input type="hidden" name="enrolmentId" value="@e.EnrolmentID" />
+                                    </form>
+                                    <td>
+                                        <input form="capture-@e.EnrolmentID" name="finishTime" class="form-control form-control-sm rd-input-time"
+                                               placeholder="00:45:30" pattern="\d{1,2}:\d{2}:\d{2}" required />
+                                    </td>
+                                    <td>
+                                        <input form="capture-@e.EnrolmentID" name="position" type="number" min="1"
+                                               class="form-control form-control-sm rd-input-position" placeholder="1" required />
+                                    </td>
+                                    <td class="text-end">
+                                        <button form="capture-@e.EnrolmentID" type="submit" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-check-lg"></i> Save
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <form asp-action="UpdateResult" method="post" id="update-@r.ResultID">
+                                        <input type="hidden" name="eventId" value="@eventId" />
+                                        <input type="hidden" name="resultId" value="@r.ResultID" />
+                                    </form>
+                                    <form asp-action="DeleteResult" method="post" id="delete-@r.ResultID"
+                                          onsubmit="return confirm('Remove this result?');">
+                                        <input type="hidden" name="eventId" value="@eventId" />
+                                        <input type="hidden" name="resultId" value="@r.ResultID" />
+                                    </form>
+                                    <td>
+                                        <input form="update-@r.ResultID" name="finishTime" class="form-control form-control-sm rd-input-time"
+                                               value="@Format.Time(r.FinishTime)" pattern="\d{1,2}:\d{2}:\d{2}" required />
+                                    </td>
+                                    <td>
+                                        <input form="update-@r.ResultID" name="position" type="number" min="1"
+                                               class="form-control form-control-sm rd-input-position" value="@r.Position" required />
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <button form="update-@r.ResultID" type="submit" class="btn btn-outline-primary btn-sm">Update</button>
+                                        <button form="delete-@r.ResultID" type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

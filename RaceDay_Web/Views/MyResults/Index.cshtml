@@ -1,0 +1,55 @@
+@model ResultsViewModel
+@{
+    ViewData["Title"] = "My Results";
+}
+
+<div class="mb-3">
+    <p class="rd-eyebrow text-orange mb-1">Race history</p>
+    <h1 class="rd-heading display-5 mb-0">My results</h1>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+@if (Model.Results.Count == 0 && string.IsNullOrEmpty(Model.Error))
+{
+    <div class="rd-card text-center p-5">
+        <i class="bi bi-trophy display-4 text-orange"></i>
+        <h2 class="rd-heading h4 mt-3">No results yet</h2>
+        <p class="text-muted mb-0">Your finish times and positions appear here once an organiser has captured them after the race.</p>
+    </div>
+}
+else if (Model.Results.Count > 0)
+{
+    <div class="rd-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table rd-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Bib</th>
+                        <th>Finish time</th>
+                        <th>Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Results)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@r.EventName</td>
+                            <td>@r.EventDate.ToString("d MMM yyyy")</td>
+                            <td>@r.CategoryName</td>
+                            <td><span class="rd-bib">@r.BibNumber</span></td>
+                            <td class="rd-time">@Format.Time(r.FinishTime)</td>
+                            <td class="rd-position">@Format.Position(r.Position, r.TotalFinishers)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

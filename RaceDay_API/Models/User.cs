@@ -1,4 +1,4 @@
-﻿// Models/User.cs
+// Models/User.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace RaceDay_API.Models;
@@ -11,6 +11,9 @@ public class User
     [Required, MaxLength(255)] public string PasswordHash { get; set; } = string.Empty;
     [Required, MaxLength(20)] public string Role { get; set; } = "Participant";
     public DateTime CreatedAt { get; set; }
+
+    // Added in Part 3
+    [MaxLength(500)] public string? ProfilePictureUrl { get; set; }
 
     public ICollection<Event> Events { get; set; } = new List<Event>();
     public ICollection<EventEnrolment> Enrolments { get; set; } = new List<EventEnrolment>();
