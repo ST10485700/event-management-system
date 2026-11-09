@@ -142,7 +142,9 @@ dotnet test RaceDay_API.sln
 
 `.github/workflows/build-and-test.yml` runs on every push and pull request. It validates the repository structure (docs, README, projects, Dockerfiles and compose file), restores and builds the whole solution (API, tests and MVC app), runs all unit tests, then starts the whole system with Docker Compose and smoke-tests it (the API logs in a seeded user and the website's login page responds). `validate-docs.yml` (from Part 1) checks the planning documents.
 
-![Green CI build](docs/ci-green-build-part3.png)
+![Green CI build](https://github.com/user-attachments/assets/2a922abd-8e51-49cd-951a-17c4a0efc829)
+
+
 
 ## Project structure
 
