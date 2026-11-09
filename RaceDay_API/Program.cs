@@ -1,6 +1,11 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using RaceDay_API.Models;
 using RaceDay_API.Services;
+
+// Form values such as 21.1 are read the same way on every computer
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,7 +57,21 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<RaceDayContext>();
     if (db.Database.IsRelational())
     {
-        db.Database.Migrate();        // SQL Server: apply migrations
+        // SQL Server: apply migrations. In Docker the database container can take a little while to start,
+        // so try again for up to about 90 seconds before giving up.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                db.Database.Migrate();
+                break;
+            }
+            catch (Exception) when (attempt < 30)
+            {
+                Console.WriteLine($"Database not ready yet (attempt {attempt} of 30). Retrying...");
+                Thread.Sleep(TimeSpan.FromSeconds(3));
+            }
+        }
     }
     else
     {

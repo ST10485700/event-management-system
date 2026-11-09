@@ -1,0 +1,49 @@
+# Runs the whole RaceDay system with one command:  docker compose up --build
+#   db  - SQL Server
+#   api - the RaceDay Web API (creates and seeds the database on start)
+#   web - the RaceDay MVC website
+#
+# Optional: to enable image uploads, put your Azure connection string in a file named .env next to this file:
+#   AZURE_STORAGE_CONNECTION_STRING=<your connection string>
+# (.env is ignored by Git, so the key is never committed.)
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: raceday-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "RaceDay_Passw0rd!"
+    volumes:
+      - raceday-data:/var/opt/mssql
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./RaceDay_API
+    container_name: raceday-api
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__RaceDayConnection: "Server=db;Database=RaceDayDB;User Id=sa;Password=RaceDay_Passw0rd!;TrustServerCertificate=True;"
+      AzureBlobStorage__ConnectionString: "${AZURE_STORAGE_CONNECTION_STRING:-}"
+      AzureBlobStorage__ContainerName: "raceday-images"
+    ports:
+      - "5099:8080"
+    restart: on-failure
+
+  web:
+    build:
+      context: ./RaceDay_Web
+    container_name: raceday-web
+    depends_on:
+      - api
+    environment:
+      ApiBaseUrl: "http://api:8080/"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  raceday-data:

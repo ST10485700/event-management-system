@@ -1,24 +1,63 @@
-   name: Build and Test
+name: Build and Test
 
-   on:
-     push:
-     pull_request:
+on:
+  push:
+  pull_request:
 
-   jobs:
-     build-and-test:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-         - uses: actions/setup-dotnet@v4
-           with:
-             dotnet-version: '8.0.x'
+      - name: Validate repository structure
+        run: |
+          test -d docs || { echo "Missing docs folder"; exit 1; }
+          test -f README.md || { echo "Missing README.md"; exit 1; }
+          test -f RaceDay_API.sln || { echo "Missing solution file"; exit 1; }
+          test -d RaceDay_API || { echo "Missing RaceDay_API project"; exit 1; }
+          test -d RaceDay_API.Tests || { echo "Missing RaceDay_API.Tests project"; exit 1; }
+          if [ -d RaceDay_Web ]; then
+            test -f RaceDay_Web/Dockerfile || { echo "Missing RaceDay_Web/Dockerfile"; exit 1; }
+            test -f RaceDay_API/Dockerfile || { echo "Missing RaceDay_API/Dockerfile"; exit 1; }
+            test -f docker-compose.yml || { echo "Missing docker-compose.yml"; exit 1; }
+          fi
+          echo "Repository structure is valid."
 
-         - name: Restore
-           run: dotnet restore RaceDay_API.sln
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-         - name: Build
-           run: dotnet build RaceDay_API.sln --no-restore --configuration Release
+      - name: Restore
+        run: dotnet restore RaceDay_API.sln
 
-         - name: Test
-           run: dotnet test RaceDay_API.sln --no-build --configuration Release --verbosity normal
+      - name: Build (API, tests and MVC app)
+        run: dotnet build RaceDay_API.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test RaceDay_API.sln --no-build --configuration Release --verbosity normal
+
+      - name: Start the whole system with Docker Compose
+        if: ${{ hashFiles('docker-compose.yml') != '' }}
+        run: docker compose up -d --build
+
+      - name: Smoke test the containers
+        if: ${{ hashFiles('docker-compose.yml') != '' }}
+        run: |
+          echo "Waiting for the API to create and seed the database..."
+          code=000
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:5099/api/Users/login -d 'email=thabo@raceday.co.za&password=Password123!' || true)
+            if [ "$code" = "200" ]; then echo "API login works (attempt $i)"; break; fi
+            echo "Attempt $i: API not ready yet (status $code)"
+            sleep 5
+          done
+          if [ "$code" != "200" ]; then docker compose logs; exit 1; fi
+
+          web=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/Account/Login || true)
+          if [ "$web" != "200" ]; then echo "Web login page returned $web"; docker compose logs web; exit 1; fi
+          echo "Web app is running in Docker."
+
+      - name: Stop containers
+        if: ${{ always() && hashFiles('docker-compose.yml') != '' }}
+        run: docker compose down -v
