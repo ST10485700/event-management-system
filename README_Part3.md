@@ -10,7 +10,7 @@ Part 3 adds the RaceDay web front end: an ASP.NET Core MVC application that give
 | Item | Link |
 |---|---|
 | Part 3 code (branch) | https://github.com/ST10485700/event-management-system/tree/part-3-mvc |
-| Part 3 video (unlisted YouTube) | [PASTE YOUR YOUTUBE LINK HERE](PASTE_LINK_HERE) |
+| Part 3 video (unlisted YouTube) | (https://youtu.be/nEZjKztuP6c) |
 | Part 2 code (branch) | https://github.com/ST10485700/event-management-system/tree/part-2-api |
 | Part 1 code (branch) | https://github.com/ST10485700/event-management-system |
 
